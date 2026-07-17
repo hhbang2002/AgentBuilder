@@ -115,6 +115,30 @@ class TestNodeType:
         assert set(_REQUIRED_FIELDS_BY_TYPE) == set(NodeType)
 
 
+class TestExecutionPolicy:
+    def test_retry_policy_is_part_of_execution_config(self) -> None:
+        """FR-AGT-01: 실행 정책은 타임아웃·재시도·최대 스텝·HITL 지점을 포함해야 한다.
+
+        재시도가 스키마에서 빠지면 FR 원문 미충족 (Stage 0 리뷰 발견 사항)."""
+        definition = _load("msds-qa.agent.yaml")
+        retry = definition.spec.execution.retry
+
+        assert retry.maxAttempts == 3  # 기본값
+        assert retry.backoffSeconds == 1.0
+
+    def test_retry_policy_can_be_overridden_in_yaml(self) -> None:
+        raw = (TEMPLATES_DIR / "msds-qa.agent.yaml").read_text(encoding="utf-8")
+        with_retry = raw.replace(
+            "    contextBudget: { history: 0.3, knowledge: 0.5 }",
+            "    contextBudget: { history: 0.3, knowledge: 0.5 }\n"
+            "    retry: { maxAttempts: 5, backoffSeconds: 2.0 }",
+        )
+        definition = from_yaml(with_retry)
+
+        assert definition.spec.execution.retry.maxAttempts == 5
+        assert definition.spec.execution.retry.backoffSeconds == 2.0
+
+
 class TestSerde:
     def test_round_trip_preserves_semantics(self) -> None:
         original = _load("risk-assessment.workflow.yaml")

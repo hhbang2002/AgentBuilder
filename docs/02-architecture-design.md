@@ -264,6 +264,8 @@ spec:
     maxSteps: 12
     timeoutSeconds: 120
     contextBudget: { history: 0.3, knowledge: 0.5 }   # FR-AGT-09
+    retry: { maxAttempts: 3, backoffSeconds: 1.0 }    # LLM 호출·출력 파싱 재시도 (FR-AGT-01/07)
+    #   도구 실행에는 미적용 — 부수효과 중복 방지, 도구 실패는 에이전트 루프가 판단
 
   dataClass: internal              # 데이터 등급 → 라우팅 정책 입력 (FR-MDL-02)
 ```

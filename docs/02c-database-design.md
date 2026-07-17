@@ -27,6 +27,19 @@
 
 컬럼은 핵심만 기재한다 (전체는 마이그레이션 코드가 진실 원천).
 
+### 2.0 플랫폼 공통 계열 *(v0.2 추가 — Stage 0 구현 리뷰에서 §2 누락 확인, 코드 기준으로 문서 보완)*
+
+```sql
+-- 워크스페이스 (FR-STD-06). 다수 테이블이 project_id FK로 참조하는 최소 단위
+projects ( id uuid PK, name text UNIQUE, description text )
+
+-- 트랜잭션 커밋과 이벤트 발행의 원자성 보장 (§5 아웃박스 항목, ADR-04)
+outbox (
+  id uuid PK, topic text, payload jsonb,
+  created_at timestamptz, published_at timestamptz NULL   -- NULL = 미발행 (부분 인덱스)
+)
+```
+
 ### 2.1 에이전트/배포 계열
 
 ```sql
@@ -85,8 +98,9 @@ document_versions ( id, document_id FK, version, source_uri, effective_date, ...
 
 -- 청크 메타 (벡터·본문 페이로드는 Qdrant, 여기는 관리·연쇄삭제·통계용)
 chunks (
-  id uuid PK, document_id uuid FK, seq int, char_span int4range,
-  qdrant_point_id uuid, token_count int
+  id uuid PK, document_id uuid FK, seq int,
+  char_start int, char_end int,    -- v0.2: int4range에서 분리 컬럼으로 변경 (구현 확정 반영)
+  qdrant_point_id uuid UNIQUE, token_count int
 )
 
 -- 온톨로지 (P1): 스키마/인스턴스 분리
@@ -184,7 +198,7 @@ model_usage ( id, occurred_at, project_id, agent_id, model_alias, backend,
 
 | 대상 | 인덱스 | 근거 |
 |---|---|---|
-| 모든 FK | b-tree (자동 아님 — 명시 생성) | 조인·연쇄 삭제 |
+| 모든 FK | b-tree (자동 아님 — 명시 생성). 유니크 제약/기존 복합 인덱스의 **선두 컬럼**으로 커버되는 FK는 중복 생성하지 않음. 미커버 FK 20건은 리비전 0005에서 일괄 생성 | 조인·연쇄 삭제 (CASCADE 시 자식 순차 스캔 방지) |
 | `runs (thread_id, created_at DESC)` | 복합 | 대화 이력 조회 (최빈 쿼리) |
 | `runs (status) WHERE status IN ('queued','paused_hitl')` | 부분 인덱스 | 워커 폴링·승인 대기 목록 — 전체 행 대비 극소수 |
 | `approval_requests (status, approver_role)` | 복합 부분(`pending`) | 승인함 |
@@ -197,6 +211,11 @@ model_usage ( id, occurred_at, project_id, agent_id, model_alias, backend,
 ---
 
 ## 4. 파티셔닝·보존·용량
+
+> **구현 상태 (v0.2)**: 아래 파티션 설계는 목표 상태이며, Stage 0 마이그레이션은
+> `runs`/`audit_logs`/`model_usage`를 **일반 테이블로 생성**했다 (0003 리비전 docstring
+> 참고 — 스키마 정확성 우선, 데이터가 쌓이기 전 파티션 전환이 더 저렴하다는 판단).
+> 파티션 전환 마이그레이션은 **Stage 4(runs 실사용 시작) 착수 전**에 추가한다.
 
 | 테이블 | 파티션 | 보존 정책 (기본값 — 배포 프로파일에서 조정) |
 |---|---|---|

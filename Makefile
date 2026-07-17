@@ -24,7 +24,7 @@ verify-fast: ## 변경된 .py 파일만 대상으로 빠르게 검증 (전체 un
 	else \
 		echo "변경된 .py 파일 없음"; \
 	fi
-	uv run pytest tests/unit -q
+	uv run pytest tests/unit -q -m "not integration"
 
 fmt: ## ruff format 적용
 	uv run ruff format src tests migrations

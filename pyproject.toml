@@ -129,6 +129,97 @@ containers = [
     "agentbuilder.governance",
 ]
 
+# ── "모듈 간 접근은 상대 모듈의 service/ 공개 API로만" (설계문서 §3 규칙 2) ──
+# 다른 모듈의 domain/ports/adapters/api/worker 직접 import를 모듈별 계약으로 차단한다.
+# 예외: platform — 공통 인프라 모듈로, platform.adapters.settings 등을 다른 모듈이
+# 직접 사용하는 것이 공개 계약이다 (platform/CLAUDE.md 참고).
+
+[[tool.importlinter.contracts]]
+name = "agents 비공개 계층은 타 모듈 접근 금지 (service만 공개)"
+type = "forbidden"
+source_modules = [
+    "agentbuilder.platform", "agentbuilder.gateway", "agentbuilder.governance",
+    "agentbuilder.knowledge", "agentbuilder.tools", "agentbuilder.evals", "agentbuilder.deploy",
+]
+forbidden_modules = [
+    "agentbuilder.agents.domain", "agentbuilder.agents.ports", "agentbuilder.agents.adapters",
+    "agentbuilder.agents.api", "agentbuilder.agents.worker",
+]
+
+[[tool.importlinter.contracts]]
+name = "knowledge 비공개 계층은 타 모듈 접근 금지 (service만 공개)"
+type = "forbidden"
+source_modules = [
+    "agentbuilder.platform", "agentbuilder.gateway", "agentbuilder.governance",
+    "agentbuilder.agents", "agentbuilder.tools", "agentbuilder.evals", "agentbuilder.deploy",
+]
+forbidden_modules = [
+    "agentbuilder.knowledge.domain", "agentbuilder.knowledge.ports", "agentbuilder.knowledge.adapters",
+    "agentbuilder.knowledge.api", "agentbuilder.knowledge.worker",
+]
+
+[[tool.importlinter.contracts]]
+name = "tools 비공개 계층은 타 모듈 접근 금지 (service만 공개)"
+type = "forbidden"
+source_modules = [
+    "agentbuilder.platform", "agentbuilder.gateway", "agentbuilder.governance",
+    "agentbuilder.agents", "agentbuilder.knowledge", "agentbuilder.evals", "agentbuilder.deploy",
+]
+forbidden_modules = [
+    "agentbuilder.tools.domain", "agentbuilder.tools.ports", "agentbuilder.tools.adapters",
+    "agentbuilder.tools.api", "agentbuilder.tools.worker",
+]
+
+[[tool.importlinter.contracts]]
+name = "evals 비공개 계층은 타 모듈 접근 금지 (service만 공개)"
+type = "forbidden"
+source_modules = [
+    "agentbuilder.platform", "agentbuilder.gateway", "agentbuilder.governance",
+    "agentbuilder.agents", "agentbuilder.knowledge", "agentbuilder.tools", "agentbuilder.deploy",
+]
+forbidden_modules = [
+    "agentbuilder.evals.domain", "agentbuilder.evals.ports", "agentbuilder.evals.adapters",
+    "agentbuilder.evals.api", "agentbuilder.evals.worker",
+]
+
+[[tool.importlinter.contracts]]
+name = "deploy 비공개 계층은 타 모듈 접근 금지 (service만 공개)"
+type = "forbidden"
+source_modules = [
+    "agentbuilder.platform", "agentbuilder.gateway", "agentbuilder.governance",
+    "agentbuilder.agents", "agentbuilder.knowledge", "agentbuilder.tools", "agentbuilder.evals",
+]
+forbidden_modules = [
+    "agentbuilder.deploy.domain", "agentbuilder.deploy.ports", "agentbuilder.deploy.adapters",
+    "agentbuilder.deploy.api", "agentbuilder.deploy.worker",
+]
+
+[[tool.importlinter.contracts]]
+name = "gateway 비공개 계층은 타 모듈 접근 금지 (service만 공개)"
+type = "forbidden"
+source_modules = [
+    "agentbuilder.platform", "agentbuilder.governance",
+    "agentbuilder.agents", "agentbuilder.knowledge", "agentbuilder.tools",
+    "agentbuilder.evals", "agentbuilder.deploy",
+]
+forbidden_modules = [
+    "agentbuilder.gateway.domain", "agentbuilder.gateway.ports", "agentbuilder.gateway.adapters",
+    "agentbuilder.gateway.api", "agentbuilder.gateway.worker",
+]
+
+[[tool.importlinter.contracts]]
+name = "governance 비공개 계층은 타 모듈 접근 금지 (service만 공개)"
+type = "forbidden"
+source_modules = [
+    "agentbuilder.platform", "agentbuilder.gateway",
+    "agentbuilder.agents", "agentbuilder.knowledge", "agentbuilder.tools",
+    "agentbuilder.evals", "agentbuilder.deploy",
+]
+forbidden_modules = [
+    "agentbuilder.governance.domain", "agentbuilder.governance.ports", "agentbuilder.governance.adapters",
+    "agentbuilder.governance.api", "agentbuilder.governance.worker",
+]
+
 [[tool.importlinter.contracts]]
 name = "domain/ports/service는 프레임워크·외부기술 의존 없이 순수 — adapters에서만 사용"
 type = "forbidden"

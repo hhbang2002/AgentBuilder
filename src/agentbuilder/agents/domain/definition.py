@@ -152,10 +152,23 @@ class ContextBudget(StrictModel):
     knowledge: float = Field(default=0.5, ge=0, le=1)
 
 
+class RetryConfig(StrictModel):
+    """FR-AGT-01 실행 정책의 재시도 요소. LLM 호출·출력 파싱 실패(FR-AGT-07)에 적용된다.
+
+    도구 실행에는 적용되지 않는다 — 도구는 정책(auto/approval/deny) 게이트를 거치며,
+    부수효과가 있는 도구를 자동 재시도하면 중복 실행 위험이 있기 때문이다. 도구 실패
+    재처리는 에이전트 루프가 에러 컨텍스트를 보고 판단한다 (설계문서 §6.1).
+    """
+
+    maxAttempts: int = Field(default=3, ge=1, le=10)
+    backoffSeconds: float = Field(default=1.0, ge=0, le=60)
+
+
 class ExecutionConfig(StrictModel):
     maxSteps: int = Field(default=20, gt=0, le=200)
     timeoutSeconds: int = Field(default=120, gt=0, le=3600)
     contextBudget: ContextBudget = Field(default_factory=ContextBudget)
+    retry: RetryConfig = Field(default_factory=RetryConfig)
 
 
 # ── graph (kind: Workflow) ───────────────────────────────────────────
