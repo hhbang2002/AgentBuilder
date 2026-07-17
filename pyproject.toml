@@ -1,0 +1,147 @@
+[project]
+name = "agentbuilder"
+version = "0.1.0"
+description = "제조 도메인 Enterprise Agent 플랫폼 — 코어 백엔드"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy[asyncio]>=2.0",
+    "alembic>=1.14",
+    "asyncpg>=0.30",
+    "redis>=5.2",
+    "structlog>=24.4",
+    "pyyaml>=6.0",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+# Stage 1+에서 어댑터 구현 시 활성화 (설계 §11 확장 포인트).
+# Stage 0 스캐폴드에는 필요하지 않으므로 기본 설치에서 제외해 설치 시간·용량을 줄인다.
+orchestration = ["langgraph>=0.2", "langgraph-checkpoint-postgres>=2.0"]
+gateway = ["litellm>=1.52"]
+vectorstore = ["qdrant-client>=1.12"]
+parsing = ["docling>=2.5"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.7",
+    "pyright>=1.1.385",
+    "import-linter>=2.1",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agentbuilder"]
+
+# ── ruff: format + lint ──────────────────────────────────────────────
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests", "migrations"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",     # pycodestyle / pyflakes
+    "I",                # import 정렬
+    "UP",               # pyupgrade
+    "B",                # bugbear
+    "SIM",              # 단순화
+    "RUF",              # ruff 자체 규칙
+]
+ignore = ["E501"]  # line-length는 formatter가 처리
+
+[tool.ruff.lint.isort]
+known-first-party = ["agentbuilder"]
+
+# ── pyright: domain/ports는 strict, adapters는 basic ────────────────
+[tool.pyright]
+include = ["src", "tests", "migrations"]
+venvPath = "."
+venv = ".venv"
+typeCheckingMode = "standard"
+reportMissingImports = true
+executionEnvironments = [
+    { root = "src/agentbuilder/*/domain", reportMissingTypeStubs = false },
+    { root = "src/agentbuilder/*/ports", reportMissingTypeStubs = false },
+]
+
+# ── pytest ────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "integration: 외부 서비스(DB/Redis/Qdrant)가 필요한 통합 테스트 — make test-int",
+]
+
+# ── import-linter: 설계문서 §3 모듈 의존 규칙을 도구로 강제 ──────────
+[tool.importlinter]
+root_packages = ["agentbuilder"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "platform은 어떤 기능 모듈도 알지 못한다"
+type = "forbidden"
+source_modules = ["agentbuilder.platform"]
+forbidden_modules = [
+    "agentbuilder.agents", "agentbuilder.knowledge", "agentbuilder.tools",
+    "agentbuilder.evals", "agentbuilder.deploy", "agentbuilder.gateway",
+    "agentbuilder.governance",
+]
+
+[[tool.importlinter.contracts]]
+name = "기반 모듈(gateway/governance)은 상위 기능 모듈을 알지 못한다"
+type = "forbidden"
+source_modules = ["agentbuilder.gateway", "agentbuilder.governance"]
+forbidden_modules = [
+    "agentbuilder.agents", "agentbuilder.knowledge", "agentbuilder.tools",
+    "agentbuilder.evals", "agentbuilder.deploy",
+]
+
+[[tool.importlinter.contracts]]
+name = "evals/deploy는 agents 상위 레이어 — agents가 evals/deploy를 알면 안 됨"
+type = "forbidden"
+source_modules = ["agentbuilder.agents", "agentbuilder.knowledge", "agentbuilder.tools"]
+forbidden_modules = ["agentbuilder.evals", "agentbuilder.deploy"]
+
+[[tool.importlinter.contracts]]
+name = "모듈 내부 계층 순서: domain은 하위 계층 없이 독립"
+type = "layers"
+layers = [
+    "api",
+    "worker",
+    "service",
+    "adapters",
+    "ports",
+    "domain",
+]
+containers = [
+    "agentbuilder.agents", "agentbuilder.knowledge", "agentbuilder.tools",
+    "agentbuilder.evals", "agentbuilder.deploy", "agentbuilder.gateway",
+    "agentbuilder.governance",
+]
+
+[[tool.importlinter.contracts]]
+name = "domain/ports/service는 프레임워크·외부기술 의존 없이 순수 — adapters에서만 사용"
+type = "forbidden"
+source_modules = [
+    "agentbuilder.agents.domain", "agentbuilder.agents.ports", "agentbuilder.agents.service",
+    "agentbuilder.knowledge.domain", "agentbuilder.knowledge.ports", "agentbuilder.knowledge.service",
+    "agentbuilder.tools.domain", "agentbuilder.tools.ports", "agentbuilder.tools.service",
+    "agentbuilder.evals.domain", "agentbuilder.evals.ports", "agentbuilder.evals.service",
+    "agentbuilder.deploy.domain", "agentbuilder.deploy.ports", "agentbuilder.deploy.service",
+    "agentbuilder.gateway.domain", "agentbuilder.gateway.ports", "agentbuilder.gateway.service",
+    "agentbuilder.governance.domain", "agentbuilder.governance.ports", "agentbuilder.governance.service",
+]
+forbidden_modules = [
+    "langgraph", "qdrant_client", "litellm", "docling", "sqlalchemy",
+    "redis", "fastapi", "alembic", "asyncpg",
+]

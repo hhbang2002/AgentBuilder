@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: verify (lint + typecheck + import-linter + unit test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "0.8.x"
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync
+
+      # make verify와 완전히 동일한 명령을 실행한다 — 로컬에서 통과하면 CI도 통과해야
+      # 한다는 원칙 (docs/03-development-guide.md §3.5).
+      - name: make verify
+        run: make verify
+
+  migrations:
+    name: migrations (upgrade/downgrade against real Postgres)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: agentbuilder
+          POSTGRES_PASSWORD: agentbuilder
+          POSTGRES_DB: agentbuilder
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U agentbuilder -d agentbuilder"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "0.8.x"
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Upgrade to head
+        env:
+          AGENTBUILDER_DATABASE_URL: postgresql+asyncpg://agentbuilder:agentbuilder@localhost:5432/agentbuilder
+        run: uv run alembic upgrade head
+
+      - name: Downgrade to base (round-trip check)
+        env:
+          AGENTBUILDER_DATABASE_URL: postgresql+asyncpg://agentbuilder:agentbuilder@localhost:5432/agentbuilder
+        run: uv run alembic downgrade base
+
+      - name: Upgrade to head again
+        env:
+          AGENTBUILDER_DATABASE_URL: postgresql+asyncpg://agentbuilder:agentbuilder@localhost:5432/agentbuilder
+        run: uv run alembic upgrade head

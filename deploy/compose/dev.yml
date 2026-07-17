@@ -1,0 +1,88 @@
+# 로컬 개발 스택 (설계문서 §9.1 축소판) — `make dev-up`으로 기동.
+#
+# 목적: Stage 0~5 개발 중 애플리케이션 프로세스(api-server/agent-worker/...)는
+# 컨테이너화하지 않고 호스트에서 `uv run`으로 직접 실행한다. 이 파일은 애플리케이션이
+# 의존하는 인프라 서비스만 제공한다 — 모든 서비스는 localhost 표준 포트로 노출된다
+# (platform/adapters/settings.py의 기본값과 일치).
+#
+# Langfuse(트레이싱)는 포함하지 않는다. 공식 셀프호스트 구성이 ClickHouse 등을 추가로
+# 요구해 검증 없이 포함하면 오히려 신뢰할 수 없는 스캐폴드가 된다 — Stage 1에서
+# RunEvent → 트레이스 연동을 구현할 때 실제로 기동·검증하며 함께 추가한다 (설계문서
+# §6.6, 03-development-guide Stage 1).
+#
+# 이미지 태그: postgres/redis는 안정적인 장기 태그로 고정. qdrant/minio/keycloak/ollama는
+# `latest`로 시작하고, 팀의 최초 `make dev-up` 성공 시점의 실제 버전으로 고정할 것
+# (이 세션은 레지스트리 접근이 차단되어 있어 특정 패치 태그의 존재를 확인할 수 없었음).
+
+name: agentbuilder-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: agentbuilder
+      POSTGRES_PASSWORD: agentbuilder
+      POSTGRES_DB: agentbuilder
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentbuilder -d agentbuilder"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333" # HTTP
+      - "6334:6334" # gRPC
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: agentbuilder
+      MINIO_ROOT_PASSWORD: agentbuilder-dev
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # 콘솔
+    volumes:
+      - minio_data:/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    command: start-dev --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak/agentbuilder-dev-realm.json:/opt/keycloak/data/import/agentbuilder-dev-realm.json:ro
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+volumes:
+  pgdata:
+  qdrant_data:
+  minio_data:
+  ollama_data:

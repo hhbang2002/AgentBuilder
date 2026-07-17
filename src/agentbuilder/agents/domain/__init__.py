@@ -1,0 +1,76 @@
+"""agents 모듈 도메인 계층 — Agent Definition DSL (설계문서 §4).
+
+외부에 공개하는 표면은 이 파일의 export가 전부다. 다른 모듈/계층은 여기서 import한다.
+"""
+
+from agentbuilder.agents.domain.definition import (
+    AgentDefinition,
+    AgentSpec,
+    ApproverSpec,
+    CitationMode,
+    ContextBudget,
+    DataClass,
+    ExecutionConfig,
+    Graph,
+    GraphEdge,
+    GraphNode,
+    GuardrailsConfig,
+    Kind,
+    KnowledgeBinding,
+    Metadata,
+    ModelConfig,
+    NodeType,
+    OutputConfig,
+    PromptSpec,
+    RetrievalConfig,
+    StructuredOutputSpec,
+    SystemPromptRef,
+    ToolBinding,
+    ToolPolicy,
+)
+from agentbuilder.agents.domain.refs import InvalidRefError, ParsedRef, parse_ref
+from agentbuilder.agents.domain.serde import DefinitionParseError, from_yaml, to_yaml
+from agentbuilder.agents.domain.validation import (
+    ValidationIssue,
+    find_cycles,
+    find_unreachable_nodes,
+    has_errors,
+    lint_graph,
+)
+
+__all__ = [
+    "AgentDefinition",
+    "AgentSpec",
+    "ApproverSpec",
+    "CitationMode",
+    "ContextBudget",
+    "DataClass",
+    "DefinitionParseError",
+    "ExecutionConfig",
+    "Graph",
+    "GraphEdge",
+    "GraphNode",
+    "GuardrailsConfig",
+    "InvalidRefError",
+    "Kind",
+    "KnowledgeBinding",
+    "Metadata",
+    "ModelConfig",
+    "NodeType",
+    "OutputConfig",
+    "ParsedRef",
+    "PromptSpec",
+    "RetrievalConfig",
+    "StructuredOutputSpec",
+    "SystemPromptRef",
+    "ToolBinding",
+    "ToolPolicy",
+    "ValidationIssue",
+    "find_cycles",
+    "find_unreachable_nodes",
+    "from_yaml",
+    "has_errors",
+    "lint_graph",
+    "parse_ref",
+    "to_yaml",
+]

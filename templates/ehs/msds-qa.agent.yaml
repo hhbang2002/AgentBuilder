@@ -1,0 +1,43 @@
+# EHS 파일럿 스타터 템플릿 — 안전 절차/MSDS Q&A (기능정의서 §8.1, 설계문서 §4.1)
+apiVersion: agentbuilder/v1
+kind: Agent
+metadata:
+  name: ehs-msds-qa
+  displayName: "안전 절차/MSDS Q&A"
+  domain: [ehs]
+  owner: team-ehs
+  description: "화학물질·작업별 안전 절차와 MSDS 질의응답"
+
+spec:
+  model:
+    alias: chat-large
+    params: { temperature: 0.1, max_tokens: 2048 }
+
+  systemPrompt:
+    ref: prompts/ehs-msds-qa@v1
+    variables: { plant: "{{ context.plant }}" }
+
+  knowledge:
+    - space: ehs-msds
+      retrieval: { topK: 8, hybrid: true, rerank: true, filters: [plant] }
+    - space: ehs-procedures
+      retrieval: { topK: 5, hybrid: true, rerank: true }
+
+  tools:
+    - name: chemical-master-lookup
+      policy: auto
+    - name: incident-report-create
+      policy: approval
+
+  output:
+    citations: required
+
+  guardrails:
+    policyPacks: [org-default, ehs-safety]
+
+  execution:
+    maxSteps: 12
+    timeoutSeconds: 120
+    contextBudget: { history: 0.3, knowledge: 0.5 }
+
+  dataClass: internal

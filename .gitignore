@@ -1,0 +1,36 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.import_linter_cache/
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
+
+# Node / Studio
+node_modules/
+studio/dist/
+studio/.vite/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+deploy/profiles/*/secrets.ref.local
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Claude Code — 개인 설정은 커밋하지 않음 (팀 공통 설정은 .claude/settings.json)
+.claude/settings.local.json
+
+# uv
+uv.lock.bak

@@ -1,0 +1,63 @@
+# EHS 파일럿 스타터 템플릿 — 위험성 평가 지원 (기능정의서 §8.1, 설계문서 §4.1)
+# 분류 → (고위험이면) 법규 Q&A 서브에이전트 호출 → 승인 게이트 → 리포트 생성
+apiVersion: agentbuilder/v1
+kind: Workflow
+metadata:
+  name: ehs-risk-assessment
+  displayName: "위험성 평가 지원"
+  domain: [ehs]
+  owner: team-ehs
+  description: "작업 내용 입력 → 위험요인·법규·보호구 체크리스트 초안 생성 (승인 후 확정)"
+
+spec:
+  model:
+    alias: chat-large
+    params: { temperature: 0.1 }
+
+  systemPrompt:
+    ref: prompts/ehs-risk-assessment@v1
+    variables: {}
+
+  knowledge:
+    - space: ehs-procedures
+      retrieval: { topK: 5, hybrid: true, rerank: true }
+
+  tools:
+    - name: risk-assessment-doc-create
+      policy: approval
+
+  output:
+    citations: required
+
+  guardrails:
+    policyPacks: [org-default, ehs-safety]
+
+  execution:
+    maxSteps: 20
+    timeoutSeconds: 300
+    contextBudget: { history: 0.2, knowledge: 0.5 }
+
+  dataClass: internal
+
+  graph:
+    entry: classify
+    nodes:
+      - id: classify
+        type: llm
+        prompt: { ref: prompts/risk-classify@v1 }
+        output: { schema: RiskClass }
+      - id: assess
+        type: subagent
+        agent: ehs-regulation-qa@stable
+      - id: approve
+        type: hitl-gate
+        approvers: { role: ehs-manager }
+        actions: [approve, reject, edit]
+      - id: report
+        type: tool
+        tool: risk-assessment-doc-create
+    edges:
+      - { from: classify, to: assess, when: "output.riskLevel != 'low'" }
+      - { from: classify, to: report, when: "output.riskLevel == 'low'" }
+      - { from: assess, to: approve }
+      - { from: approve, to: report, when: "action == 'approve'" }
