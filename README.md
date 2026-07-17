@@ -28,5 +28,7 @@
 | 문서 | 상태 | 설명 |
 |---|---|---|
 | [docs/01-functional-specification.md](docs/01-functional-specification.md) | ✅ v0.3 확정 | 기능정의서 — EHS 파일럿 확정, 최종 리뷰 보완 반영 |
-| [docs/02-architecture-design.md](docs/02-architecture-design.md) | 🔍 검토 대기 | 설계문서 — 모듈러 모놀리스 + 포트/어댑터, DSL 명세, 데이터 모델, ADR |
-| docs/03-development-guide.md | ⬜ 예정 | 개발 가이드 (하네스 엔지니어링 최적화 포함) |
+| [docs/02-architecture-design.md](docs/02-architecture-design.md) | ✅ 최종 리뷰 완료 | 설계문서 — 모듈러 모놀리스 + 포트/어댑터, DSL 명세, ADR 10건 |
+| [docs/02b-uiux-design.md](docs/02b-uiux-design.md) | ✅ 작성 완료 | UI/UX 설계 — UX 원칙, IA, 핵심 화면, 사용성 목표(TTFA 30분) |
+| [docs/02c-database-design.md](docs/02c-database-design.md) | ✅ 작성 완료 | DB 상세 설계 — 테이블 정의, 인덱스, 파티셔닝, 보존 정책 |
+| [docs/03-development-guide.md](docs/03-development-guide.md) | ✅ 작성 완료 | 개발 가이드 — 하네스 엔지니어링(CLAUDE.md/Hooks/Skills/Subagents), 단계별 개발 계획(Stage 0~6) |

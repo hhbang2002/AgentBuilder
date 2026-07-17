@@ -311,7 +311,8 @@ spec:
 
 ## 5. 데이터 모델
 
-핵심 엔티티와 관계 (PostgreSQL). 상세 컬럼은 개발 단계에서 마이그레이션 코드로 확정한다.
+핵심 엔티티와 관계 (PostgreSQL). **테이블 상세 정의·인덱스·파티셔닝·보존 정책은
+[02c-database-design.md](02c-database-design.md)** 에서 구체화한다.
 
 ```mermaid
 erDiagram
@@ -544,6 +545,9 @@ DeploymentProfile (어느 배포인가)    고객사별 설정 팩 — 커넥터
   데코레이터로 기록. append-only 테이블 + 일별 해시 체인(변조 감지).
 
 ### 6.7 Studio Web (FR-STD)
+
+> 화면 설계·UX 원칙·사용자 저니는 **[02b-uiux-design.md](02b-uiux-design.md)** 참조.
+> 본 절은 기술 구조만 다룬다.
 
 - React SPA. 상태 관리: 서버 상태는 TanStack Query, 캔버스 로컬 상태는 Zustand.
 - **캔버스 ↔ DSL 동기화 설계**: 편집의 진실 원천은 메모리 내 DSL 문서(JSON) 하나.
@@ -791,5 +795,6 @@ AgentBuilder/
 
 ---
 
-*본 설계가 확정되면 `docs/03-development-guide.md`에서 개발 환경 구성, 코딩 규약,
-CLAUDE.md 하네스 구성, 슬라이스별 상세 작업 분해(WBS)를 정의한다.*
+*하네스 엔지니어링 상세 구성(CLAUDE.md, Rules, Hooks, Skills, Subagents)과 단계별
+개발 계획(WBS·수락 기준)은 **[03-development-guide.md](03-development-guide.md)** 에
+정의되어 있다.*

@@ -849,7 +849,7 @@ graph LR
 | 임베딩 | ✅ **BGE-M3** | multilingual-e5, 한국어 특화 모델 | 한국어 포함 다국어, dense+sparse 동시 지원 |
 | 리랭커 | ✅ **BGE-reranker-v2-m3** | ko-reranker 계열 | 다국어 cross-encoder |
 | 문서 파싱 | ✅ **Docling** | Unstructured, MinerU | 표/레이아웃 품질, MIT 라이선스. HWP 파서는 P1에서 별도 확보 (비중 낮음 확인) |
-| 지식그래프 | ✅ **Neo4j Community** (스키마·규모 검토 후) | LightRAG, Apache Jena(RDF 필요 시), ArangoDB | GraphRAG 생태계. Community 에디션 제약(클러스터링 불가) 유의 → 설계 단계 검증 항목 |
+| 지식그래프 | ✅ **Neo4j Community** (스키마·규모 검토 후) | Apache AGE(PostgreSQL 확장), FalkorDB, LightRAG | GraphRAG 생태계 최강. 단 **Community는 GPLv3** — 별도 프로세스 사용은 가능하나 고객사 배포 시 라이선스 고지 필요, NFR-10 관점에서 P2 착수 전 Apache AGE와 비교 PoC (열린 검토 항목) |
 | 온톨로지 저작 | ✅ 웹 편집기 자체 개발 + **Protégé** 임포트 호환 | — | 현업 사용성 (Protégé는 전문가용) |
 | 관측성 | ✅ **Langfuse** (self-host) | Phoenix(Arize), OpenLLMetry+Grafana | LangGraph 통합, 평가·프롬프트 관리 겸용, MIT 코어 |
 | 평가 | ✅ **Ragas + DeepEval** 조합 | promptfoo, TruLens | RAG 메트릭(Ragas) + 테스트 프레임워크(DeepEval) |
