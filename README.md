@@ -27,6 +27,6 @@
 
 | 문서 | 상태 | 설명 |
 |---|---|---|
-| [docs/01-functional-specification.md](docs/01-functional-specification.md) | ✅ 작성 완료 | 기능정의서 (본 단계 산출물) |
-| docs/02-architecture-design.md | ⬜ 예정 | 설계문서 (기능정의 확정 후) |
+| [docs/01-functional-specification.md](docs/01-functional-specification.md) | ✅ v0.3 확정 | 기능정의서 — EHS 파일럿 확정, 최종 리뷰 보완 반영 |
+| [docs/02-architecture-design.md](docs/02-architecture-design.md) | 🔍 검토 대기 | 설계문서 — 모듈러 모놀리스 + 포트/어댑터, DSL 명세, 데이터 모델, ADR |
 | docs/03-development-guide.md | ⬜ 예정 | 개발 가이드 (하네스 엔지니어링 최적화 포함) |
